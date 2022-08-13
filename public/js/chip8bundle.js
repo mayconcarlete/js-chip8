@@ -10,12 +10,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Chip8": () => (/* binding */ Chip8)
 /* harmony export */ });
 /* harmony import */ var _Display__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
+/* harmony import */ var _Keyboard__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var _Memory__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
+/* harmony import */ var _Registers__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
+
+
+
 
 
 class Chip8 {
   constructor(){
     console.log("Hello from web pack")
     this.display = new _Display__WEBPACK_IMPORTED_MODULE_0__.Display()
+    this.memory = new _Memory__WEBPACK_IMPORTED_MODULE_2__.Memory()
+    this.registers = new _Registers__WEBPACK_IMPORTED_MODULE_3__.Registers()
+    this.keyboard = new _Keyboard__WEBPACK_IMPORTED_MODULE_1__.Keyboard()
   }
 }
 
@@ -88,6 +97,166 @@ const DISPLAY_MULTIPLAY = 10;
 const BACKGROUND_COLOR = "black";
 const COLOR = "#3f6";
 
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Keyboard": () => (/* binding */ Keyboard)
+/* harmony export */ });
+/* harmony import */ var _constants_keyboardConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+
+
+class Keyboard {
+  constructor(){
+    document.addEventListener("keydown", this.keydown)
+  }
+  keydown({key}){
+    const keyIndex = _constants_keyboardConstants__WEBPACK_IMPORTED_MODULE_0__.keyMap.findIndex((mapKey) => mapKey === key.toLowerCase())
+    if(keyIndex > -1){
+      console.log(keyIndex)
+    }
+  }
+}
+
+/***/ }),
+/* 5 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Memory": () => (/* binding */ Memory)
+/* harmony export */ });
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+
+class Memory {
+  constructor(){
+    this.memory = new Uint8Array(_constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.MEMORY_SIZE)
+    this.reset()
+  }
+  reset(){
+    this.memory.fill(0)
+  }
+
+  setMemory(index, value){
+    this.assertMemory(index)
+    this.memory[index] = value
+  }
+  getMemory(index){
+    this.assertMemory(index)
+    return this.memory[index]
+  }
+  assertMemory(index){
+    console.assert(index >= 0 && index < _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.MEMORY_SIZE, `Error: trying to access memmory at index: ${index}`)
+  }
+}
+
+/***/ }),
+/* 6 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "LOAD_PROGRAM_ADDRESS": () => (/* binding */ LOAD_PROGRAM_ADDRESS),
+/* harmony export */   "MEMORY_SIZE": () => (/* binding */ MEMORY_SIZE)
+/* harmony export */ });
+const MEMORY_SIZE = 4095
+const LOAD_PROGRAM_ADDRESS = 0x200
+
+
+/***/ }),
+/* 7 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Registers": () => (/* binding */ Registers)
+/* harmony export */ });
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8);
+
+
+
+class Registers {
+  constructor(){
+    this.V = new Uint8Array(_constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.NUMBER_OF_REGISTERS);
+    this.I = 0;
+    this.delayTimer = 0;
+    this.soundTimer = 0;
+    this.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.LOAD_PROGRAM_ADDRESS;
+    this.SP = -1
+    this.stack = new Uint16Array(_constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.STACK_DEEP)
+    this.reset()
+  }
+  reset(){
+    this.V.fill(0)
+    this.I=0
+    this.delayTimer = 0
+    this.soundTimer = 0
+    this.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.LOAD_PROGRAM_ADDRESS
+    this.SP = -1
+    this.stack.fill(0)
+  }
+
+  stackPush(value){
+    this.SP++
+    this.assertStackOverflow()
+    this.stack[this.SP] = value
+  }
+  stackPop(){
+    const value = this.stack[this.SP]
+    this.SP--
+    this.assertStackUnderflow()
+    return value
+  }
+  assertStackUnderflow(){
+    console.assert(this.SP >= -1, 'Error: stack underflow')
+  }
+  assertStackOverflow(){
+    console.assert(this.SP < _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.STACK_DEEP, 'Error: stack Overflow')
+  }
+}
+
+/***/ }),
+/* 8 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NUMBER_OF_REGISTERS": () => (/* binding */ NUMBER_OF_REGISTERS),
+/* harmony export */   "STACK_DEEP": () => (/* binding */ STACK_DEEP)
+/* harmony export */ });
+const NUMBER_OF_REGISTERS = 16
+const STACK_DEEP = 16
+
+/***/ }),
+/* 9 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "keyMap": () => (/* binding */ keyMap)
+/* harmony export */ });
+const keyMap = [
+  "1", "2", "3",
+  "q", "w", "e",
+  "a", "s", "d",
+  "x", "z", "c",
+  "4", "r", "f", "v"
+]
+
+/**
+ *
+ * chip 8 keyboard
+ *
+ * 1 2 3 C
+ * 4 5 6 D
+ * 7 8 9 E
+ * A 0 B F
+ *
+ */
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -151,8 +320,20 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Chip8__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 
-
 const chip8 = new _Chip8__WEBPACK_IMPORTED_MODULE_0__.Chip8()
+// chip8.memory.setMemory(0x05, 0x1a)
+// console.log(chip8.memory.getMemory(0x05))
+
+chip8.registers.stackPush(1)
+chip8.registers.stackPush(2)
+chip8.registers.stackPush(3)
+
+let result = chip8.registers.stackPop()
+console.log(result)
+result = chip8.registers.stackPop()
+console.log(result)
+result = chip8.registers.stackPop()
+console.log(result)
 })();
 
 /******/ })()
