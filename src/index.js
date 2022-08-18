@@ -28,6 +28,29 @@ async() => {
   // console.log(chip8.memory.getMemory(2).toString(16))
   // console.log(chip8.memory.getMemory(3).toString(16))
   // console.log(chip8.memory.getMemory(4).toString(16))
-  chip8.display.drawSprite(4,1,0,5)
+  // chip8.display.drawSprite(4,1,0,5)
+  // chip8.registers.ST = 3
+  // while(1){
+    // await chip8.sleep(200)
+    // if(chip8.registers.DT > 0){
+    //   await chip8.sleep()
+    //   chip8.registers.DT--;
+    // }
+    // if(chip8.registers.ST > 0){
+    //   chip8.soundCard.enabledSound()
+    //   await chip8.sleep()
+    //   chip8.registers.ST--;
+    // }
+    // if(chip8.registers.ST === 0){
+    //   chip8.soundCard.disableSound()
+    // }
+  // }
+  // chip8.disassembler.disassemble(0x00e0)
+  // chip8.disassembler.disassemble(0x00ee)
+  // chip8.disassembler.disassemble(0x1234)
+  // chip8.disassembler.disassemble(0x2432)
+
+  chip8.disassembler.disassemble(0x3101)
+
 }
 )()

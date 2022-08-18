@@ -1,8 +1,11 @@
 import { CHAR_SET } from "./constants/charSetConstants"
+import { TIMER_60_HZ } from "./constants/registersConstants"
+import { Disassembler } from "./Disassembler"
 import { Display } from "./Display"
 import { Keyboard } from "./Keyboard"
 import { Memory } from "./Memory"
 import { Registers } from "./Registers"
+import { SoundCard } from "./SoundCard"
 
 export class Chip8 {
   constructor(){
@@ -12,9 +15,11 @@ export class Chip8 {
 
     this.registers = new Registers()
     this.keyboard = new Keyboard()
+    this.soundCard = new SoundCard()
+    this.disassembler = new Disassembler()
     this.display = new Display(this.memory)
   }
-  sleep(ms = 1000){
+  sleep(ms = TIMER_60_HZ){
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
   loadCharSet(){

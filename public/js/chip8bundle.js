@@ -10,10 +10,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Chip8": () => (/* binding */ Chip8)
 /* harmony export */ });
 /* harmony import */ var _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony import */ var _Display__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var _Keyboard__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5);
-/* harmony import */ var _Memory__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(7);
-/* harmony import */ var _Registers__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(9);
+/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _Disassembler__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var _Display__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(6);
+/* harmony import */ var _Keyboard__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(8);
+/* harmony import */ var _Memory__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(10);
+/* harmony import */ var _Registers__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(12);
+/* harmony import */ var _SoundCard__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(13);
+
+
+
 
 
 
@@ -23,14 +29,16 @@ __webpack_require__.r(__webpack_exports__);
 class Chip8 {
   constructor(){
     console.log("Hello from web pack")
-    this.memory = new _Memory__WEBPACK_IMPORTED_MODULE_3__.Memory()
+    this.memory = new _Memory__WEBPACK_IMPORTED_MODULE_5__.Memory()
     this.loadCharSet()
 
-    this.registers = new _Registers__WEBPACK_IMPORTED_MODULE_4__.Registers()
-    this.keyboard = new _Keyboard__WEBPACK_IMPORTED_MODULE_2__.Keyboard()
-    this.display = new _Display__WEBPACK_IMPORTED_MODULE_1__.Display(this.memory)
+    this.registers = new _Registers__WEBPACK_IMPORTED_MODULE_6__.Registers()
+    this.keyboard = new _Keyboard__WEBPACK_IMPORTED_MODULE_4__.Keyboard()
+    this.soundCard = new _SoundCard__WEBPACK_IMPORTED_MODULE_7__.SoundCard()
+    this.disassembler = new _Disassembler__WEBPACK_IMPORTED_MODULE_2__.Disassembler()
+    this.display = new _Display__WEBPACK_IMPORTED_MODULE_3__.Display(this.memory)
   }
-  sleep(ms = 1000){
+  sleep(ms = _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.TIMER_60_HZ){
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
   loadCharSet(){
@@ -137,9 +145,98 @@ const CHAR_SET = [
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "NUMBER_OF_REGISTERS": () => (/* binding */ NUMBER_OF_REGISTERS),
+/* harmony export */   "STACK_DEEP": () => (/* binding */ STACK_DEEP),
+/* harmony export */   "TIMER_60_HZ": () => (/* binding */ TIMER_60_HZ)
+/* harmony export */ });
+const NUMBER_OF_REGISTERS = 16
+const STACK_DEEP = 16
+
+const TIMER_60_HZ = 1000/60
+
+
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Disassembler": () => (/* binding */ Disassembler)
+/* harmony export */ });
+/* harmony import */ var _constants_instructionSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5);
+
+
+class Disassembler {
+  disassemble(opcode){
+    const instruction = _constants_instructionSet__WEBPACK_IMPORTED_MODULE_0__.INSTRUCTION_SET.find(instruction => (opcode & instruction.mask) === instruction.pattern)
+    const args = instruction.arguments.map( arg => (opcode & arg.mask) >> arg.shift)
+    console.log('instruction: ', instruction)
+    console.log(args)
+  }
+}
+
+/***/ }),
+/* 5 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "INSTRUCTION_SET": () => (/* binding */ INSTRUCTION_SET)
+/* harmony export */ });
+const INSTRUCTION_SET = [
+  {
+    key: 2,
+    id: 'CLS',
+    name: 'CLS',
+    mask: 0xffff,
+    pattern: 0x00e0,
+    arguments: []
+
+  },
+  {
+    key: 3,
+    id: 'RET',
+    name: 'RET',
+    mask: 0xffff,
+    pattern: 0x00ee,
+    arguments: []
+  },
+  {
+    key: 4,
+    id: 'JP_ADDR',
+    name: 'JP',
+    mask: 0xf000,
+    pattern: 0x1000,
+    arguments: [{mask: 0x0fff}]
+  },
+  {
+    key: 5,
+    id: 'CALL_ADDR',
+    name: 'CALL',
+    mask: 0xf000,
+    pattern: 0x2000,
+    arguments: [{mask: 0x0fff}]
+  },
+  {
+    key: 6,
+    id: 'SE_VX_NN',
+    name: 'SE',
+    mask: 0xf000,
+    pattern: 0x3000,
+    arguments: [{mask: 0x0f00, shift:8}, {mask: 0x00ff}]
+  },
+]
+
+
+/***/ }),
+/* 6 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Display": () => (/* binding */ Display)
 /* harmony export */ });
-/* harmony import */ var _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 /* harmony import */ var _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 
 
@@ -201,7 +298,7 @@ class Display {
 }
 
 /***/ }),
-/* 4 */
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -219,14 +316,14 @@ const BACKGROUND_COLOR = "black";
 const COLOR = "#3f6";
 
 /***/ }),
-/* 5 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Keyboard": () => (/* binding */ Keyboard)
 /* harmony export */ });
-/* harmony import */ var _constants_keyboardConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _constants_keyboardConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
 
 
 class Keyboard {
@@ -258,7 +355,7 @@ class Keyboard {
 }
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -289,14 +386,14 @@ const keyMap = [
 
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Memory": () => (/* binding */ Memory)
 /* harmony export */ });
-/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
 
 class Memory {
   constructor(){
@@ -321,7 +418,7 @@ class Memory {
 }
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -335,34 +432,34 @@ const LOAD_PROGRAM_ADDRESS = 0x200
 const CHAR_SET_ADDRESS = 0x000;
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Registers": () => (/* binding */ Registers)
 /* harmony export */ });
-/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
-/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(11);
+/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 
 
 
 class Registers {
   constructor(){
-    this.V = new Uint8Array(_constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.NUMBER_OF_REGISTERS);
-    this.I = 0;
-    this.delayTimer = 0;
-    this.soundTimer = 0;
-    this.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.LOAD_PROGRAM_ADDRESS;
-    this.SP = -1
+    this.V = new Uint8Array(_constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.NUMBER_OF_REGISTERS); // registers
+    this.I = 0; // address register
+    this.DT = 0; // delay timer register
+    this.ST = 0; // sound time register
+    this.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.LOAD_PROGRAM_ADDRESS; // program counter
+    this.SP = -1 // stack pointer
     this.stack = new Uint16Array(_constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__.STACK_DEEP)
     this.reset()
   }
   reset(){
     this.V.fill(0)
     this.I=0
-    this.delayTimer = 0
-    this.soundTimer = 0
+    this.DT = 0
+    this.ST = 0
     this.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__.LOAD_PROGRAM_ADDRESS
     this.SP = -1
     this.stack.fill(0)
@@ -388,16 +485,67 @@ class Registers {
 }
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "NUMBER_OF_REGISTERS": () => (/* binding */ NUMBER_OF_REGISTERS),
-/* harmony export */   "STACK_DEEP": () => (/* binding */ STACK_DEEP)
+/* harmony export */   "SoundCard": () => (/* binding */ SoundCard)
 /* harmony export */ });
-const NUMBER_OF_REGISTERS = 16
-const STACK_DEEP = 16
+/* harmony import */ var _constants_soundCardConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(14);
+
+
+class SoundCard {
+  constructor(){
+    this.soundIsEnable = false
+    if("AudioContext" in window || "webkitAudioContext" in window){
+      const audioContext = new (AudioContext || webkitAudioContext)()
+      const masterGain = new GainNode(audioContext)
+      masterGain.gain.value = _constants_soundCardConstants__WEBPACK_IMPORTED_MODULE_0__.INITIAL_VOLUME
+      masterGain.connect(audioContext.destination)
+      let soundEnabled = false
+      let oscillator
+      Object.defineProperties(this, {
+        soundEnabled:{
+          get: function(){
+            return soundEnabled
+          },
+          set: function(value){
+            if(value === soundEnabled){
+              return
+            }
+            soundEnabled = value
+            if(soundEnabled){
+              oscillator = new OscillatorNode(audioContext, {
+                type: "square"
+              })
+              oscillator.connect(masterGain)
+              oscillator.start()
+            } else {
+               oscillator.stop()
+            }
+          }
+        }
+      })
+    }
+  }
+  enabledSound(){
+    this.soundEnabled = true
+  }
+  disableSound(){
+    this.soundEnabled = false
+  }
+}
+
+/***/ }),
+/* 14 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "INITIAL_VOLUME": () => (/* binding */ INITIAL_VOLUME)
+/* harmony export */ });
+const INITIAL_VOLUME = 0.3
 
 /***/ })
 /******/ 	]);
@@ -491,7 +639,30 @@ async() => {
   // console.log(chip8.memory.getMemory(2).toString(16))
   // console.log(chip8.memory.getMemory(3).toString(16))
   // console.log(chip8.memory.getMemory(4).toString(16))
-  chip8.display.drawSprite(4,1,0,5)
+  // chip8.display.drawSprite(4,1,0,5)
+  // chip8.registers.ST = 3
+  // while(1){
+    // await chip8.sleep(200)
+    // if(chip8.registers.DT > 0){
+    //   await chip8.sleep()
+    //   chip8.registers.DT--;
+    // }
+    // if(chip8.registers.ST > 0){
+    //   chip8.soundCard.enabledSound()
+    //   await chip8.sleep()
+    //   chip8.registers.ST--;
+    // }
+    // if(chip8.registers.ST === 0){
+    //   chip8.soundCard.disableSound()
+    // }
+  // }
+  // chip8.disassembler.disassemble(0x00e0)
+  // chip8.disassembler.disassemble(0x00ee)
+  // chip8.disassembler.disassemble(0x1234)
+  // chip8.disassembler.disassemble(0x2432)
+
+  chip8.disassembler.disassemble(0x3101)
+
 }
 )()
 
