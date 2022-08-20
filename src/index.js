@@ -51,6 +51,10 @@ async() => {
   // chip8.disassembler.disassemble(0x2432)
 
   chip8.disassembler.disassemble(0x3101)
+  chip8.disassembler.disassemble(0x1009)
+  chip8.disassembler.disassemble(0x4209)
+  chip8.disassembler.disassemble(0x5230)
+  chip8.disassembler.disassemble(0x7a09)
 
 }
 )()
