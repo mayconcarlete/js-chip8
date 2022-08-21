@@ -16,6 +16,11 @@ export class Memory {
     this.assertMemory(index)
     return this.memory[index]
   }
+  getOpCode(index){
+    const highByte = this.getMemory(index)
+    const lowByte = this.getMemory(index +1)
+    return (highByte << 8 ) | lowByte
+  }
   assertMemory(index){
     console.assert(index >= 0 && index < MEMORY_SIZE, `Error: trying to access memmory at index: ${index}`)
   }

@@ -1,60 +1,33 @@
 import { Chip8 } from "./Chip8"
-const chip8 = new Chip8()
-// chip8.memory.setMemory(0x05, 0x1a)
-// console.log(chip8.memory.getMemory(0x05))
 
-// chip8.registers.stackPush(1)
-// chip8.registers.stackPush(2)
-// chip8.registers.stackPush(3)
-
-// let result = chip8.registers.stackPop()
-// console.log(result)
-// result = chip8.registers.stackPop()
-// console.log(result)
-// result = chip8.registers.stackPop()
-// console.log(result)
 ;
 (
 async() => {
-  // while(1){
-  //   const hasKeydown = chip8.keyboard.hasKeydown()
-  //   const isKeydown = chip8.keyboard.isKeydown(1)
-  //   console.log("hasKeyDown: ", hasKeydown)
-  //   console.log("isKeyDown: ", isKeydown)
-  //   await chip8.sleep()
-  // }
-  // console.log(chip8.memory.getMemory(0).toString(16))
-  // console.log(chip8.memory.getMemory(1).toString(16))
-  // console.log(chip8.memory.getMemory(2).toString(16))
-  // console.log(chip8.memory.getMemory(3).toString(16))
-  // console.log(chip8.memory.getMemory(4).toString(16))
-  // chip8.display.drawSprite(4,1,0,5)
-  // chip8.registers.ST = 3
-  // while(1){
-    // await chip8.sleep(200)
-    // if(chip8.registers.DT > 0){
-    //   await chip8.sleep()
-    //   chip8.registers.DT--;
-    // }
-    // if(chip8.registers.ST > 0){
-    //   chip8.soundCard.enabledSound()
-    //   await chip8.sleep()
-    //   chip8.registers.ST--;
-    // }
-    // if(chip8.registers.ST === 0){
-    //   chip8.soundCard.disableSound()
-    // }
-  // }
-  // chip8.disassembler.disassemble(0x00e0)
-  // chip8.disassembler.disassemble(0x00ee)
-  // chip8.disassembler.disassemble(0x1234)
-  // chip8.disassembler.disassemble(0x2432)
+  const path = "./roms/test_opcode"
+  const rom = await fetch('./roms/test_opcode');
+  const arrayBuffer = await rom.arrayBuffer();
+  const romBuffer = new Uint8Array(arrayBuffer);
+  const chip8 = new Chip8(romBuffer)
+  console.log('pc: ', chip8.registers.PC)
+  console.log('SP: ', chip8.registers.SP)
+  chip8.registers.PC = 0x0010
+  chip8.registers.V[0] = 0x04
+  chip8.registers.V[5] = 0x01
+  chip8.registers.V[6] = 0x01
+  chip8.execute(0xb003)
+  console.log("#############")
+  console.log("V5: ",chip8.registers.V[5].toString(16))
+  console.log("V6: ",chip8.registers.V[6].toString(16))
+  console.log("VF: ",chip8.registers.V[0x0f].toString(16))
+  console.log('pc: ', chip8.registers.PC)
+  console.log("I: ", chip8.registers.I.toString(16))
 
-  chip8.disassembler.disassemble(0x3101)
-  chip8.disassembler.disassemble(0x1009)
-  chip8.disassembler.disassemble(0x4209)
-  chip8.disassembler.disassemble(0x5230)
-  chip8.disassembler.disassemble(0x7a09)
+
+  // chip8.execute(0x00ee)
+  // console.log('Pc',chip8.registers.PC.toString(16))
+  // console.log('sp: ', chip8.registers.SP)
+  // console.log("stack: ", chip8.registers.stack)
+  // chip8.execute(0x310f)
 
 }
 )()
