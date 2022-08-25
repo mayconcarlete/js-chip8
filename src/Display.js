@@ -23,7 +23,6 @@ export class Display {
   }
   drawBuffer(){
     for(let height=0; height<DISPLAY_HEIGHT; height++){
-      this.frameBuffer.push([])
       for(let width=0; width<DISPLAY_WIDTH; width++){
         this.drawPixel(height, width, this.frameBuffer[height][width])
       }
@@ -40,12 +39,21 @@ export class Display {
   }
 
   drawSprite(height, width, spriteAddress, number){
+    let pixelColision = 0
     for(let lHeight = 0 ; lHeight < number; lHeight++){
       const line = this.memory.memory[spriteAddress+lHeight]
       for(let lWidth=0; lWidth < CHAR_SET_WIDTH; lWidth++){
         const bitToCheck = (0b10000000 >> lWidth)
         const value = line & bitToCheck
-        this.drawPixel(height+lHeight, width+lWidth, value)
+        const ph = (height + lHeight) % DISPLAY_HEIGHT
+        const pw = (width + lWidth) % DISPLAY_WIDTH
+        if(value ===0){
+          continue
+        }
+        if(this.frameBuffer[ph][pw] === 1){
+          pixelColision = 1
+        }
+        this.frameBuffer[ph][pw] ^=1
         // Alternative solution
         // console.log(line.toString(2)[0] === 1)
         // if(line.toString(2)[lWidth]==="1"){
@@ -54,5 +62,7 @@ export class Display {
         // }
       }
     }
+      this.drawBuffer()
+      return pixelColision
   }
 }

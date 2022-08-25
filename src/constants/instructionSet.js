@@ -177,7 +177,7 @@ export const INSTRUCTION_SET = [
   },
   {
     key: 23,
-    id: 'RND_VX',
+    id: 'RND_VX_KK',
     name: 'RND',
     mask: MASK_HIGHEST_BYTE,
     pattern: 0xC000,

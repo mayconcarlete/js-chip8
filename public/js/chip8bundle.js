@@ -10,14 +10,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "Chip8": () => (/* binding */ Chip8)
 /* harmony export */ });
 /* harmony import */ var _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(2);
-/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
-/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
-/* harmony import */ var _Disassembler__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
-/* harmony import */ var _Display__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(7);
-/* harmony import */ var _Keyboard__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(9);
-/* harmony import */ var _Memory__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(11);
-/* harmony import */ var _Registers__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(12);
-/* harmony import */ var _SoundCard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(13);
+/* harmony import */ var _constants_displayConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4);
+/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(5);
+/* harmony import */ var _Disassembler__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(6);
+/* harmony import */ var _Display__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(8);
+/* harmony import */ var _Keyboard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(9);
+/* harmony import */ var _Memory__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(11);
+/* harmony import */ var _Registers__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(12);
+/* harmony import */ var _SoundCard__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(13);
+
 
 
 
@@ -31,27 +33,27 @@ __webpack_require__.r(__webpack_exports__);
 class Chip8 {
   constructor(romBuffer){
     console.log("Hello fa new chip-8")
-    this.memory = new _Memory__WEBPACK_IMPORTED_MODULE_6__.Memory()
-    this.registers = new _Registers__WEBPACK_IMPORTED_MODULE_7__.Registers()
+    this.memory = new _Memory__WEBPACK_IMPORTED_MODULE_7__.Memory()
+    this.registers = new _Registers__WEBPACK_IMPORTED_MODULE_8__.Registers()
     this.loadCharSet()
     this.loadRom(romBuffer)
-    this.keyboard = new _Keyboard__WEBPACK_IMPORTED_MODULE_5__.Keyboard()
-    this.soundCard = new _SoundCard__WEBPACK_IMPORTED_MODULE_8__.SoundCard()
-    this.disassembler = new _Disassembler__WEBPACK_IMPORTED_MODULE_3__.Disassembler()
-    this.display = new _Display__WEBPACK_IMPORTED_MODULE_4__.Display(this.memory)
+    this.keyboard = new _Keyboard__WEBPACK_IMPORTED_MODULE_6__.Keyboard()
+    this.soundCard = new _SoundCard__WEBPACK_IMPORTED_MODULE_9__.SoundCard()
+    this.disassembler = new _Disassembler__WEBPACK_IMPORTED_MODULE_4__.Disassembler()
+    this.display = new _Display__WEBPACK_IMPORTED_MODULE_5__.Display(this.memory)
   }
-  sleep(ms = _constants_registersConstants__WEBPACK_IMPORTED_MODULE_2__.TIMER_60_HZ){
+  sleep(ms = _constants_registersConstants__WEBPACK_IMPORTED_MODULE_3__.TIMER_60_HZ){
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
   loadCharSet(){
-    this.memory.memory.set(_constants_charSetConstants__WEBPACK_IMPORTED_MODULE_0__.CHAR_SET, _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_0__.CHAR_SET)
+    this.memory.memory.set(_constants_charSetConstants__WEBPACK_IMPORTED_MODULE_0__.CHAR_SET, _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__.CHAR_SET_ADDRESS)
   }
   loadRom(romBuffer){
-    console.assert((romBuffer.length + _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_1__.LOAD_PROGRAM_ADDRESS) <= _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_1__.MEMORY_SIZE, 'This rom is too large.')
-    this.memory.memory.set(romBuffer, _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_1__.LOAD_PROGRAM_ADDRESS)
-    this.registers.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_1__.LOAD_PROGRAM_ADDRESS
+    console.assert((romBuffer.length + _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__.LOAD_PROGRAM_ADDRESS) <= _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__.MEMORY_SIZE, 'This rom is too large.')
+    this.memory.memory.set(romBuffer, _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__.LOAD_PROGRAM_ADDRESS)
+    this.registers.PC = _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_2__.LOAD_PROGRAM_ADDRESS
   }
-  execute(opcode){
+  async execute(opcode){
     const {instruction, args} = this.disassembler.disassemble(opcode)
     const {id} = instruction
     console.log('i: ', instruction)
@@ -156,6 +158,67 @@ class Chip8 {
         case "JP_V0_ADD":
           this.registers.PC = this.registers.V[0] + args[0]
           break
+        case "RND_VX_KK":
+          const random = Math.floor(Math.random() * 0xFF)
+          this.registers.V[args[0]] = random & args[1]
+          break
+
+        case "DRW_VX_VY_N":
+          const colision = this.display.drawSprite(
+            this.registers.V[args[0]],
+            this.registers.V[args[1]],
+            this.registers.I,
+            args[2]
+          )
+          if(colision){
+            this.registers.V[0x0f] = colision
+          }
+          break
+
+        case "SKP_VX":
+          if(this.keyboard.isKeydown(this.registers.V[args[0]])){
+            this.registers.PC += 2
+          }
+          break
+
+        case "SKNP_VX":
+          if(!this.keyboard.isKeydown(this.registers.V[args[0]])){
+            this.registers.PC += 2
+          }
+          break
+
+
+        case "LD_VX_DT":
+          this.registers.V[args[0]] = this.registers.DT
+          break
+
+        case "LD_VX_K":
+        let keyPressed = -1
+        while(keyPressed === -1){
+          keyPressed = this.keyboard.hasKeydown()
+          await this.sleep()
+        }
+        this.registers.V[args[0]] = keyPressed
+        console.log("got key: ", this.registers.V[args[0]])
+        break
+
+        case "LD_DT_DX":
+          this.registers.DT = this.registers.V[args[0]]
+          break
+
+        case "LD_ST_VX":
+          this.registers.ST = this.registers.V[args[0]]
+          break
+
+        case "ADD_I_VX":
+          this.registers.I += this.registers.V[args[0]]
+          break
+
+        case "LD_F_VX":
+          this.registers.I = this.registers.V[args[0]] * _constants_displayConstants__WEBPACK_IMPORTED_MODULE_1__.SPRITE_HEIGHT
+          break
+
+
       default:
         console.error(`Instruction with id ${id} not found.`, instruction, args)
     }
@@ -261,6 +324,26 @@ const CHAR_SET = [
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "BACKGROUND_COLOR": () => (/* binding */ BACKGROUND_COLOR),
+/* harmony export */   "COLOR": () => (/* binding */ COLOR),
+/* harmony export */   "DISPLAY_HEIGHT": () => (/* binding */ DISPLAY_HEIGHT),
+/* harmony export */   "DISPLAY_MULTIPLAY": () => (/* binding */ DISPLAY_MULTIPLAY),
+/* harmony export */   "DISPLAY_WIDTH": () => (/* binding */ DISPLAY_WIDTH),
+/* harmony export */   "SPRITE_HEIGHT": () => (/* binding */ SPRITE_HEIGHT)
+/* harmony export */ });
+const DISPLAY_WIDTH = 64;
+const DISPLAY_HEIGHT = 32;
+const DISPLAY_MULTIPLAY = 10;
+const BACKGROUND_COLOR = "black";
+const COLOR = "#3f6";
+const SPRITE_HEIGHT = 5
+
+/***/ }),
+/* 4 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "CHAR_SET_ADDRESS": () => (/* binding */ CHAR_SET_ADDRESS),
 /* harmony export */   "LOAD_PROGRAM_ADDRESS": () => (/* binding */ LOAD_PROGRAM_ADDRESS),
 /* harmony export */   "MEMORY_SIZE": () => (/* binding */ MEMORY_SIZE)
@@ -270,7 +353,7 @@ const LOAD_PROGRAM_ADDRESS = 0x200
 const CHAR_SET_ADDRESS = 0x000;
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -286,14 +369,14 @@ const TIMER_60_HZ = 1000/60
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Disassembler": () => (/* binding */ Disassembler)
 /* harmony export */ });
-/* harmony import */ var _constants_instructionSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6);
+/* harmony import */ var _constants_instructionSet__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 
 
 class Disassembler {
@@ -310,7 +393,7 @@ class Disassembler {
 }
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
@@ -503,7 +586,7 @@ const INSTRUCTION_SET = [
   },
   {
     key: 23,
-    id: 'RND_VX',
+    id: 'RND_VX_KK',
     name: 'RND',
     mask: MASK_HIGHEST_BYTE,
     pattern: 0xC000,
@@ -609,14 +692,14 @@ const INSTRUCTION_SET = [
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Display": () => (/* binding */ Display)
 /* harmony export */ });
-/* harmony import */ var _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8);
+/* harmony import */ var _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
 /* harmony import */ var _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2);
 
 
@@ -643,7 +726,6 @@ class Display {
   }
   drawBuffer(){
     for(let height=0; height<_constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__.DISPLAY_HEIGHT; height++){
-      this.frameBuffer.push([])
       for(let width=0; width<_constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__.DISPLAY_WIDTH; width++){
         this.drawPixel(height, width, this.frameBuffer[height][width])
       }
@@ -660,12 +742,21 @@ class Display {
   }
 
   drawSprite(height, width, spriteAddress, number){
+    let pixelColision = 0
     for(let lHeight = 0 ; lHeight < number; lHeight++){
       const line = this.memory.memory[spriteAddress+lHeight]
       for(let lWidth=0; lWidth < _constants_charSetConstants__WEBPACK_IMPORTED_MODULE_1__.CHAR_SET_WIDTH; lWidth++){
         const bitToCheck = (0b10000000 >> lWidth)
         const value = line & bitToCheck
-        this.drawPixel(height+lHeight, width+lWidth, value)
+        const ph = (height + lHeight) % _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__.DISPLAY_HEIGHT
+        const pw = (width + lWidth) % _constants_displayConstants__WEBPACK_IMPORTED_MODULE_0__.DISPLAY_WIDTH
+        if(value ===0){
+          continue
+        }
+        if(this.frameBuffer[ph][pw] === 1){
+          pixelColision = 1
+        }
+        this.frameBuffer[ph][pw] ^=1
         // Alternative solution
         // console.log(line.toString(2)[0] === 1)
         // if(line.toString(2)[lWidth]==="1"){
@@ -674,26 +765,10 @@ class Display {
         // }
       }
     }
+      this.drawBuffer()
+      return pixelColision
   }
 }
-
-/***/ }),
-/* 8 */
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "BACKGROUND_COLOR": () => (/* binding */ BACKGROUND_COLOR),
-/* harmony export */   "COLOR": () => (/* binding */ COLOR),
-/* harmony export */   "DISPLAY_HEIGHT": () => (/* binding */ DISPLAY_HEIGHT),
-/* harmony export */   "DISPLAY_MULTIPLAY": () => (/* binding */ DISPLAY_MULTIPLAY),
-/* harmony export */   "DISPLAY_WIDTH": () => (/* binding */ DISPLAY_WIDTH)
-/* harmony export */ });
-const DISPLAY_WIDTH = 64;
-const DISPLAY_HEIGHT = 32;
-const DISPLAY_MULTIPLAY = 10;
-const BACKGROUND_COLOR = "black";
-const COLOR = "#3f6";
 
 /***/ }),
 /* 9 */
@@ -718,7 +793,6 @@ class Keyboard {
     if(keyIndex > -1){
       this.keys[keyIndex] = true
     }
-    console.log(this.keys)
   }
   keyup(key){
     const keyIndex = _constants_keyboardConstants__WEBPACK_IMPORTED_MODULE_0__.keyMap.findIndex((mapKey) => mapKey === key.toLowerCase())
@@ -730,7 +804,7 @@ class Keyboard {
     return this.keys[keyIndex]
   }
   hasKeydown(){
-    return this.keys.findIndex(key => key) != -1
+    return this.keys.findIndex(key => key)
   }
 }
 
@@ -773,7 +847,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Memory": () => (/* binding */ Memory)
 /* harmony export */ });
-/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
 
 class Memory {
   constructor(){
@@ -810,8 +884,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Registers": () => (/* binding */ Registers)
 /* harmony export */ });
-/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3);
-/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4);
+/* harmony import */ var _constants_memoryConstants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4);
+/* harmony import */ var _constants_registersConstants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(5);
 
 
 
@@ -988,19 +1062,24 @@ async() => {
   const arrayBuffer = await rom.arrayBuffer();
   const romBuffer = new Uint8Array(arrayBuffer);
   const chip8 = new _Chip8__WEBPACK_IMPORTED_MODULE_0__.Chip8(romBuffer)
-  console.log('pc: ', chip8.registers.PC)
-  console.log('SP: ', chip8.registers.SP)
-  chip8.registers.PC = 0x0010
-  chip8.registers.V[0] = 0x04
-  chip8.registers.V[5] = 0x01
-  chip8.registers.V[6] = 0x01
-  chip8.execute(0xb003)
-  console.log("#############")
-  console.log("V5: ",chip8.registers.V[5].toString(16))
-  console.log("V6: ",chip8.registers.V[6].toString(16))
-  console.log("VF: ",chip8.registers.V[0x0f].toString(16))
-  console.log('pc: ', chip8.registers.PC)
+  // chip8.registers.PC = 0x010
+  // chip8.registers.I = 0xF
+  chip8.registers.V[0] = 0x1
+  chip8.registers.V[5] = 0x010
+  chip8.registers.V[8] = 0x010
+  // chip8.registers.DT = 0x0
+  // chip8.registers.ST = 0x0
+  // chip8.registers.I = 0x03
+
+
+  await chip8.execute(0xF029)
+  await chip8.execute(0xD585)
+
+  console.log("V0: ", chip8.registers.V[0].toString(16))
+  console.log("DT: ", chip8.registers.DT.toString(16))
+  console.log("ST: ", chip8.registers.ST.toString(16))
   console.log("I: ", chip8.registers.I.toString(16))
+
 
 
   // chip8.execute(0x00ee)

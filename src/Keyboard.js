@@ -12,7 +12,6 @@ export class Keyboard {
     if(keyIndex > -1){
       this.keys[keyIndex] = true
     }
-    console.log(this.keys)
   }
   keyup(key){
     const keyIndex = keyMap.findIndex((mapKey) => mapKey === key.toLowerCase())
@@ -24,6 +23,6 @@ export class Keyboard {
     return this.keys[keyIndex]
   }
   hasKeydown(){
-    return this.keys.findIndex(key => key) != -1
+    return this.keys.findIndex(key => key)
   }
 }

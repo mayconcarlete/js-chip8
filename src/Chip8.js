@@ -1,5 +1,6 @@
 import { CHAR_SET } from "./constants/charSetConstants"
-import { LOAD_PROGRAM_ADDRESS, MEMORY_SIZE } from "./constants/memoryConstants"
+import { SPRITE_HEIGHT } from "./constants/displayConstants"
+import { LOAD_PROGRAM_ADDRESS, MEMORY_SIZE, CHAR_SET_ADDRESS } from "./constants/memoryConstants"
 import { TIMER_60_HZ } from "./constants/registersConstants"
 import { Disassembler } from "./Disassembler"
 import { Display } from "./Display"
@@ -24,14 +25,14 @@ export class Chip8 {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
   loadCharSet(){
-    this.memory.memory.set(CHAR_SET, CHAR_SET)
+    this.memory.memory.set(CHAR_SET, CHAR_SET_ADDRESS)
   }
   loadRom(romBuffer){
     console.assert((romBuffer.length + LOAD_PROGRAM_ADDRESS) <= MEMORY_SIZE, 'This rom is too large.')
     this.memory.memory.set(romBuffer, LOAD_PROGRAM_ADDRESS)
     this.registers.PC = LOAD_PROGRAM_ADDRESS
   }
-  execute(opcode){
+  async execute(opcode){
     const {instruction, args} = this.disassembler.disassemble(opcode)
     const {id} = instruction
     console.log('i: ', instruction)
@@ -136,6 +137,67 @@ export class Chip8 {
         case "JP_V0_ADD":
           this.registers.PC = this.registers.V[0] + args[0]
           break
+        case "RND_VX_KK":
+          const random = Math.floor(Math.random() * 0xFF)
+          this.registers.V[args[0]] = random & args[1]
+          break
+
+        case "DRW_VX_VY_N":
+          const colision = this.display.drawSprite(
+            this.registers.V[args[0]],
+            this.registers.V[args[1]],
+            this.registers.I,
+            args[2]
+          )
+          if(colision){
+            this.registers.V[0x0f] = colision
+          }
+          break
+
+        case "SKP_VX":
+          if(this.keyboard.isKeydown(this.registers.V[args[0]])){
+            this.registers.PC += 2
+          }
+          break
+
+        case "SKNP_VX":
+          if(!this.keyboard.isKeydown(this.registers.V[args[0]])){
+            this.registers.PC += 2
+          }
+          break
+
+
+        case "LD_VX_DT":
+          this.registers.V[args[0]] = this.registers.DT
+          break
+
+        case "LD_VX_K":
+        let keyPressed = -1
+        while(keyPressed === -1){
+          keyPressed = this.keyboard.hasKeydown()
+          await this.sleep()
+        }
+        this.registers.V[args[0]] = keyPressed
+        console.log("got key: ", this.registers.V[args[0]])
+        break
+
+        case "LD_DT_DX":
+          this.registers.DT = this.registers.V[args[0]]
+          break
+
+        case "LD_ST_VX":
+          this.registers.ST = this.registers.V[args[0]]
+          break
+
+        case "ADD_I_VX":
+          this.registers.I += this.registers.V[args[0]]
+          break
+
+        case "LD_F_VX":
+          this.registers.I = this.registers.V[args[0]] * SPRITE_HEIGHT
+          break
+
+
       default:
         console.error(`Instruction with id ${id} not found.`, instruction, args)
     }
