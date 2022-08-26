@@ -218,6 +218,27 @@ class Chip8 {
           this.registers.I = this.registers.V[args[0]] * _constants_displayConstants__WEBPACK_IMPORTED_MODULE_1__.SPRITE_HEIGHT
           break
 
+        case "LD_B_VX":
+          const num = this.registers.V[args[0]]
+          const hundreds = Math.floor(num/100)
+          const ones = num % 10
+          const tens = Math.floor(((num % 100) - ones)/10)
+          this.memory.memory[this.registers.I] = hundreds
+          this.memory.memory[this.registers.I + 1] = tens
+          this.memory.memory[this.registers.I + 2] = ones
+          break
+
+        case "LD_I_VX":
+          for(let i = 0; i< args[0]; i++){
+            this.memory.memory[this.registers.I + i] = this.registers.V[i]
+          }
+          break
+
+        case "LD_VX_I":
+          for(let i = 0; i< args[0]; i++){
+            this.registers.V[i] = this.memory.memory[this.registers.I + i]
+          }
+          break
 
       default:
         console.error(`Instruction with id ${id} not found.`, instruction, args)
@@ -1057,37 +1078,34 @@ __webpack_require__.r(__webpack_exports__);
 
 (
 async() => {
-  const path = "./roms/test_opcode"
-  const rom = await fetch('./roms/test_opcode');
+  const path = "./roms/BLINKY"
+  const rom = await fetch(path);
   const arrayBuffer = await rom.arrayBuffer();
   const romBuffer = new Uint8Array(arrayBuffer);
   const chip8 = new _Chip8__WEBPACK_IMPORTED_MODULE_0__.Chip8(romBuffer)
-  // chip8.registers.PC = 0x010
-  // chip8.registers.I = 0xF
-  chip8.registers.V[0] = 0x1
-  chip8.registers.V[5] = 0x010
-  chip8.registers.V[8] = 0x010
-  // chip8.registers.DT = 0x0
-  // chip8.registers.ST = 0x0
-  // chip8.registers.I = 0x03
+  console.log(chip8.memory.memory)
+  // while(1){
+  //   await chip8.sleep(200)
+  //   if(chip8.registers.DT > 0){
+  //     await chip8.sleep()
+  //     chip8.registers.DT--
+  //   }
 
+  //   if(chip8.registers.ST > 0){
+  //     chip8.soundCard.enabledSound()
+  //     await chip8.sleep()
+  //     chip8.registers.ST--
+  //   }
 
-  await chip8.execute(0xF029)
-  await chip8.execute(0xD585)
-
-  console.log("V0: ", chip8.registers.V[0].toString(16))
-  console.log("DT: ", chip8.registers.DT.toString(16))
-  console.log("ST: ", chip8.registers.ST.toString(16))
-  console.log("I: ", chip8.registers.I.toString(16))
-
-
-
-  // chip8.execute(0x00ee)
-  // console.log('Pc',chip8.registers.PC.toString(16))
-  // console.log('sp: ', chip8.registers.SP)
-  // console.log("stack: ", chip8.registers.stack)
-  // chip8.execute(0x310f)
-
+  //   if(chip8.registers.ST === 0){
+  //     chip8.soundCard.disableSound()
+  //   }
+  //   const address = chip8.registers.PC
+  //   const opCode = chip8.memory.getOpCode(address)
+  //   await chip8.execute(opCode)
+  //   chip8.registers.PC += 2
+  //   console.log(opCode.toString(16))
+  // }
 }
 )()
 
